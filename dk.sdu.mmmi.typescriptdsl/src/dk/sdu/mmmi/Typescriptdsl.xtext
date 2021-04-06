@@ -1,0 +1,53 @@
+grammar dk.sdu.mmmi.Typescriptdsl with org.eclipse.xtext.common.Terminals
+
+generate typescriptdsl "http://www.sdu.dk/mmmi/Typescriptdsl"
+
+Database:
+	'database' name=ID
+	
+	tables += Table+
+;
+
+Table:
+	'table' name=ID ':'
+		attributes += Attribute+
+;
+
+Attribute:
+	name=ID ':' type=AttributeType (optional='?')? (primary='primary')? 
+		('constraint'  constraint=OrConstraint)?
+;
+
+OrConstraint: 
+	AndConstraint ({Or.left=current} '||' right=AndConstraint)*
+;
+
+AndConstraint: 
+	Constraint ({And.left=current} '&&' right=Constraint)*
+;
+
+Constraint: 		 
+ 	{RegexConstraint} value=STRING |
+ 	{CompareConstraint} operator=Operators value=INT |
+ 	{IntervalConstraint} min=INT '-' max=INT
+;
+
+Operators: 
+	'>' |
+	'>=' |
+	'<' |
+	'<=' |
+	'='
+;
+
+AttributeType returns AttributeType:
+	PrimaryType | TableType
+;
+
+PrimaryType returns PrimaryType:
+	{IntType}'int' | {StringType} 'string' | {DateType} 'date' 
+;
+
+TableType returns TableType:
+	table=[Table]
+;
