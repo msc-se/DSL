@@ -118,7 +118,7 @@ class TypescriptdslGenerator extends AbstractGenerator {
 	
 	
 	def generateRelationsFunctionCalls(Attribute attr) {
-		if (!(attr.type instanceof TableType)) throw new Exception("")
+		if (!(attr.type instanceof TableType)) throw new Exception('''Attribute «attr.name» is not a foreign key''')
 		val type = attr.type as TableType
 		val primary = type.table.primaryColumn
 		'''foreign('«attr.name»_«primary.name»').references('«type.table.name.toLowerCase».«primary.name»')'''
