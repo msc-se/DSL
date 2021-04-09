@@ -65,7 +65,6 @@ class TypescriptdslGenerator extends AbstractGenerator {
 			«FOR t: tables.filter[it.attributes.exists[it.type instanceof TableType]]»
 			«t.generateRelationsAlterTable»
 			«ENDFOR»
-			
 			return query
 		}
 	'''
