@@ -7,6 +7,15 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import dk.sdu.mmmi.typescriptdsl.Table
+import dk.sdu.mmmi.typescriptdsl.Attribute
+import dk.sdu.mmmi.typescriptdsl.AttributeType
+import dk.sdu.mmmi.typescriptdsl.IntType
+import dk.sdu.mmmi.typescriptdsl.DateType
+import dk.sdu.mmmi.typescriptdsl.StringType
+import dk.sdu.mmmi.typescriptdsl.TableType
+import dk.sdu.mmmi.typescriptdsl.PrimaryType
+import java.util.Iterator
 
 /**
  * Generates code from your model files on save.
@@ -21,5 +30,102 @@ class TypescriptdslGenerator extends AbstractGenerator {
 //				.filter(Greeting)
 //				.map[name]
 //				.join(', '))
+		fsa.generateFile("types.ts", resource.allContents.filter(Table).map[generateTable].join('\n'))
+		fsa.generateFile("create.ts", generateCreateFile(resource.allContents.filter(Table).toList))
+		
+		
 	}
+	
+	
+	def CharSequence generateTable(Table table) '''
+		export type «table.name» = {
+			«FOR d: table.attributes»
+			«d.generateAttribute»
+			«ENDFOR»
+		}
+	'''
+		
+	def generateAttribute(Attribute attribute) '''
+		«attribute.name»«attribute.optional ? "?" : ""»: «attribute.type.typeScriptType»
+	'''
+		
+	def CharSequence getTypeScriptType(AttributeType type) {
+		switch type {
+			IntType: "number"
+			StringType: "string"
+			DateType: "Date"
+			TableType: type.table.name 
+			default: "unknown"
+		}
+	}
+	
+	
+	def generateCreateFile(Iterable<Table> tables) '''
+		import { Knex } from 'knex'
+		
+		export default function (knex: Knex) {
+			«FOR t: tables»
+			«t.generateCreateTable»
+			«ENDFOR»
+		}
+	'''
+	
+	
+	def generateCreateTable(Table table) '''
+		knex.schema.createTable('«table.name.toLowerCase»', function (table: Knex.TableBuilder) {
+			«FOR d: table.attributes»
+			«d.generateCreateAttribute»
+			«ENDFOR»
+		})
+	'''
+	
+	def generateCreateAttribute(Attribute attribute) '''
+		table.«attribute.generateFunctionCalls»«IF attribute.optional».nullable()«ENDIF»
+	'''
+	
+	def generateFunctionCalls(Attribute attr) {
+		val attrType = attr.type
+		switch attrType {
+			IntType: {
+				'''«attr.primary ? "increments" : "integer"»('«attr.name»')'''
+			}
+			StringType: {
+				'''string('«attr.name»')«IF attr.primary».primary()«ENDIF»'''
+			}
+			DateType: {
+				'''timestamp('«attr.name»')'''
+			}
+			TableType: {
+				val primary = attrType.table.primaryColumnName
+				'''foreign('«attr.name»_«primary»').references('«attrType.table.name.toLowerCase».«primary»')'''
+			}
+			default: throw new Exception("Unknown type for create!")
+		}
+	}
+	
+	def getPrimaryColumnName(Table table) {
+		val primaries = table.attributes.filter[it.primary]
+		if (primaries.size == 0) throw new Exception('''No primary key for table «table.name»''')
+		if (primaries.size > 1) throw new Exception('''Only one primary key can be defined for «table.name»''')
+		primaries.head.name
+	}
+	
+	
+	
+		
+	def createCreate() {
+		""
+	}
+	
+	/*
+	 * 	knex.schema.createTable('users', function (table) {
+		  table.increments();
+		  table.string('name');
+		  table.timestamps();
+		})
+	 * 
+	 * 
+	 * 
+	 */
+	
 }
