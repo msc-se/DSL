@@ -5,7 +5,16 @@ generate typescriptdsl "http://www.sdu.dk/mmmi/Typescriptdsl"
 Database:
 	'database' name=ID
 	
+	config += Config*
+	
 	tables += Table+
+;
+
+Config returns Config:
+	{ConfigProvider} 'provider' value=STRING | // Database type
+	{ConfigUrl} 'url' value=STRING |
+	{ConfigUsername} 'username' value=STRING |
+	{ConfigPassword} 'password' value=STRING
 ;
 
 Table:
@@ -14,7 +23,7 @@ Table:
 ;
 
 Attribute:
-	name=ID ':' type=AttributeType (optional='?')? (primary='primary')? 
+	name=ID ':' type=AttributeType (optional?='?')? (primary?='primary')? 
 		('constraint'  constraint=OrConstraint)?
 ;
 
