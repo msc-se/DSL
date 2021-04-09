@@ -25,15 +25,8 @@ import java.util.Iterator
 class TypescriptdslGenerator extends AbstractGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-//		fsa.generateFile('greetings.txt', 'People to greet: ' + 
-//			resource.allContents
-//				.filter(Greeting)
-//				.map[name]
-//				.join(', '))
 		fsa.generateFile("types.ts", resource.allContents.filter(Table).map[generateTable].join('\n'))
 		fsa.generateFile("create.ts", generateCreateFile(resource.allContents.filter(Table).toList))
-		
-		
 	}
 	
 	
@@ -63,24 +56,41 @@ class TypescriptdslGenerator extends AbstractGenerator {
 	def generateCreateFile(Iterable<Table> tables) '''
 		import { Knex } from 'knex'
 		
-		export default function (knex: Knex) {
+		export default function (knex: Knex): Promise<void> {
+			let query = knex.schema
+			
 			«FOR t: tables»
 			«t.generateCreateTable»
 			«ENDFOR»
+			«FOR t: tables.filter[it.attributes.exists[it.type instanceof TableType]]»
+			«t.generateRelationsAlterTable»
+			«ENDFOR»
+			
+			return query
 		}
 	'''
 	
 	
 	def generateCreateTable(Table table) '''
-		knex.schema.createTable('«table.name.toLowerCase»', function (table: Knex.TableBuilder) {
+		query = query.createTable('«table.name.toLowerCase»', function (table) {
 			«FOR d: table.attributes»
 			«d.generateCreateAttribute»
 			«ENDFOR»
 		})
+		
+	'''
+	
+	def generateRelationsAlterTable(Table table) '''
+		query = query.alterTable('«table.name.toLowerCase»', function (table) {
+			«FOR d: table.attributes.filter[it.type instanceof TableType]»
+			«d.generateCreateRelationAttribute»
+			«ENDFOR»
+		})
+		
 	'''
 	
 	def generateCreateAttribute(Attribute attribute) '''
-		table.«attribute.generateFunctionCalls»«IF attribute.optional».nullable()«ENDIF»
+		table.«attribute.generateFunctionCalls»«IF !attribute.optional && !attribute.primary».notNullable()«ENDIF»
 	'''
 	
 	def generateFunctionCalls(Attribute attr) {
@@ -96,36 +106,38 @@ class TypescriptdslGenerator extends AbstractGenerator {
 				'''timestamp('«attr.name»')'''
 			}
 			TableType: {
-				val primary = attrType.table.primaryColumnName
-				'''foreign('«attr.name»_«primary»').references('«attrType.table.name.toLowerCase».«primary»')'''
+				val primary = attrType.table.primaryColumn
+				'''«primary.type.generateForeignFunctionCall('''«attr.name»_«primary.name»''')»'''
 			}
 			default: throw new Exception("Unknown type for create!")
 		}
 	}
 	
-	def getPrimaryColumnName(Table table) {
+	def generateCreateRelationAttribute(Attribute attribute) '''
+		table.«attribute.generateRelationsFunctionCalls»
+	'''
+	
+	
+	def generateRelationsFunctionCalls(Attribute attr) {
+		if (!(attr.type instanceof TableType)) throw new Exception("")
+		val type = attr.type as TableType
+		val primary = type.table.primaryColumn
+		'''foreign('«attr.name»_«primary.name»').references('«type.table.name.toLowerCase».«primary.name»')'''
+	}
+	
+	def generateForeignFunctionCall(AttributeType type, String name) {
+		switch type {
+			IntType: '''integer('«name»').unsigned()'''
+			StringType: '''string('«name»')'''
+			default: throw new Exception("Unknown type for foreign create!")
+		}
+	}
+	
+	
+	def getPrimaryColumn(Table table) {
 		val primaries = table.attributes.filter[it.primary]
 		if (primaries.size == 0) throw new Exception('''No primary key for table «table.name»''')
 		if (primaries.size > 1) throw new Exception('''Only one primary key can be defined for «table.name»''')
-		primaries.head.name
-	}
-	
-	
-	
-		
-	def createCreate() {
-		""
-	}
-	
-	/*
-	 * 	knex.schema.createTable('users', function (table) {
-		  table.increments();
-		  table.string('name');
-		  table.timestamps();
-		})
-	 * 
-	 * 
-	 * 
-	 */
-	
+		primaries.head
+	}	
 }
