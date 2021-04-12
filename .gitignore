@@ -62,8 +62,8 @@ local.properties
 generated/
 src-gen/
 
-xtend-gen/
-!xtend-gen/.gitkeep
+# xtend-gen/
+#!.gitkeep
 
 test-bin/
 
