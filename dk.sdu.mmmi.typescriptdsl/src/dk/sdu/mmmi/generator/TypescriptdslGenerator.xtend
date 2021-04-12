@@ -3,19 +3,17 @@
  */
 package dk.sdu.mmmi.generator
 
+import dk.sdu.mmmi.typescriptdsl.Attribute
+import dk.sdu.mmmi.typescriptdsl.AttributeType
+import dk.sdu.mmmi.typescriptdsl.DateType
+import dk.sdu.mmmi.typescriptdsl.IntType
+import dk.sdu.mmmi.typescriptdsl.StringType
+import dk.sdu.mmmi.typescriptdsl.Table
+import dk.sdu.mmmi.typescriptdsl.TableType
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
-import dk.sdu.mmmi.typescriptdsl.Table
-import dk.sdu.mmmi.typescriptdsl.Attribute
-import dk.sdu.mmmi.typescriptdsl.AttributeType
-import dk.sdu.mmmi.typescriptdsl.IntType
-import dk.sdu.mmmi.typescriptdsl.DateType
-import dk.sdu.mmmi.typescriptdsl.StringType
-import dk.sdu.mmmi.typescriptdsl.TableType
-import dk.sdu.mmmi.typescriptdsl.PrimaryType
-import java.util.Iterator
 
 /**
  * Generates code from your model files on save.
@@ -26,9 +24,9 @@ class TypescriptdslGenerator extends AbstractGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		fsa.generateFile("types.ts", resource.allContents.filter(Table).map[generateTable].join('\n'))
-		fsa.generateFile("create.ts", generateCreateFile(resource.allContents.filter(Table).toList))
+		fsa.generateFile("createTables.ts", generateCreateFile(resource.allContents.filter(Table).toList))
+		fsa.generateFile("dropTables.ts", generateDropFile(resource.allContents.filter(Table).toList))
 	}
-	
 	
 	def CharSequence generateTable(Table table) '''
 		export type «table.name» = {
@@ -52,11 +50,10 @@ class TypescriptdslGenerator extends AbstractGenerator {
 		}
 	}
 	
-	
 	def generateCreateFile(Iterable<Table> tables) '''
 		import { Knex } from 'knex'
 		
-		export default function (knex: Knex): Promise<void> {
+		export function createTables(knex: Knex): Promise<void> {
 			let query = knex.schema
 			
 			«FOR t: tables»
@@ -69,6 +66,21 @@ class TypescriptdslGenerator extends AbstractGenerator {
 		}
 	'''
 	
+	def generateDropFile(Iterable<Table> tables) '''
+		import { Knex } from 'knex'
+		
+		export async function dropTables(knex: Knex): Promise<void> {
+			await knex.raw('set foreign_key_checks = 0;')
+			
+			let query = knex.schema
+			
+			«FOR t: tables»
+			query = query.dropTableIfExists('«t.name.toLowerCase»')
+			«ENDFOR»
+
+			return query
+		}
+	'''
 	
 	def generateCreateTable(Table table) '''
 		query = query.createTable('«table.name.toLowerCase»', function (table) {
@@ -116,7 +128,6 @@ class TypescriptdslGenerator extends AbstractGenerator {
 		table.«attribute.generateRelationsFunctionCalls»
 	'''
 	
-	
 	def generateRelationsFunctionCalls(Attribute attr) {
 		if (!(attr.type instanceof TableType)) throw new Exception('''Attribute «attr.name» is not a foreign key''')
 		val type = attr.type as TableType
@@ -131,7 +142,6 @@ class TypescriptdslGenerator extends AbstractGenerator {
 			default: throw new Exception("Unknown type for foreign create!")
 		}
 	}
-	
 	
 	def getPrimaryColumn(Table table) {
 		val primaries = table.attributes.filter[it.primary]
