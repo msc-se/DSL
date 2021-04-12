@@ -63,5 +63,9 @@ generated/
 src-gen/
 xtend-gen/
 
+!xtend-gen/.gitkeep
+
+test-bin/
+
 # Ignore plugin.xml_gen and feature.xml_gen files, when build Eclipse Plugins.
 *.xml_gen
