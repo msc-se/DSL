@@ -9,11 +9,12 @@ import dk.sdu.mmmi.typescriptdsl.Table
 import dk.sdu.mmmi.typescriptdsl.TableType
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
+import static extension dk.sdu.mmmi.generator.Helpers.toPascalCase
 
 class TypeGenerator implements FileGenerator {
 	override generate(Resource resource, IFileSystemAccess2 fsa) {
 		val tables = resource.allContents.filter(Table).toList
-		
+				
 		fsa.generateFile("types.ts", tables.filter(Table).map[generateTypes].join("\n"))
 	}
 	
@@ -47,7 +48,7 @@ class TypeGenerator implements FileGenerator {
 		'''
 		export type «table.name»Include = {
 			«FOR a: table.attributes.filter[it | it.type instanceof TableType]»
-			«a.name»?: boolean«a.type instanceof TableType ? " | " + Helpers.toPascal(a.name) + "Args" : ""»
+			«a.name»?: boolean«a.type instanceof TableType ? " | " + a.name.toPascalCase + "Args" : ""»
 			«ENDFOR»
 		}
 		'''
@@ -56,10 +57,12 @@ class TypeGenerator implements FileGenerator {
 	private def generateSelect(Table table) '''
 		export type «table.name»Select = {
 			«FOR a: table.attributes»
-			«a.name»?: boolean«a.type instanceof TableType ? " | " + Helpers.toPascal(a.name) + "Args" : ""»
+			«a.name»?: boolean«a.type instanceof TableType ? " | " + a.name.toPascalCase + "Args" : ""»
 			«ENDFOR»
 		}
 	'''
+	
+
 	
 	private def generateAttribute(Attribute attribute) {
 		if (attribute.type instanceof TableType) return ""

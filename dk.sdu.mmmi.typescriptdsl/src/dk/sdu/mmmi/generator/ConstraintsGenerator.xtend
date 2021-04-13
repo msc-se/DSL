@@ -10,6 +10,7 @@ import dk.sdu.mmmi.typescriptdsl.Table
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import dk.sdu.mmmi.typescriptdsl.Constraint
+import static extension dk.sdu.mmmi.generator.Helpers.toCamelCase
 
 class ConstraintsGenerator implements FileGenerator {
 	
@@ -20,7 +21,7 @@ class ConstraintsGenerator implements FileGenerator {
 	}
 	
 	def generateConstraints(Table table) '''
-		const «Helpers.toCamel(table.name)»Constraints: Constraints<«table.name»> = {
+		const «table.name.toCamelCase»Constraints: Constraints<«table.name»> = {
 			«FOR a: table.attributes.filter[it.constraint !== null] SEPARATOR ','» 
 			«a.generateAttributeConstraints»
 			«ENDFOR»
