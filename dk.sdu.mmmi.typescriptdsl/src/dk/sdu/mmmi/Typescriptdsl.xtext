@@ -27,15 +27,15 @@ Attribute:
 		('constraint'  constraint=OrConstraint)?
 ;
 
-OrConstraint: 
+OrConstraint returns Constraint:
 	AndConstraint ({Or.left=current} '||' right=AndConstraint)*
 ;
 
 AndConstraint: 
-	Constraint ({And.left=current} '&&' right=Constraint)*
+	PrimaryConstraint ({And.left=current} '&&' right=PrimaryConstraint)*
 ;
 
-Constraint: 		 
+PrimaryConstraint: 		 
  	{RegexConstraint} value=STRING |
  	{CompareConstraint} operator=Operators value=INT |
  	{IntervalConstraint} min=INT '-' max=INT
