@@ -40,12 +40,14 @@ class MigrationGenerator implements FileGenerator {
 		export function createTables(knex: Knex): Promise<void> {
 			let query = knex.schema
 			
-			«FOR t: tables»
+			«FOR t: tables SEPARATOR '\n'»
 			«t.generateCreateTable»
 			«ENDFOR»
-			«FOR t: tables.filter[it.attributes.exists[it.type instanceof TableType]]»
+			
+			«FOR t: tables.filter[it.attributes.exists[it.type instanceof TableType]] SEPARATOR '\n'»
 			«t.generateRelationsAlterTable»
 			«ENDFOR»
+			
 			return query
 		}
 	'''
