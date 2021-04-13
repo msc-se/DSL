@@ -22,7 +22,7 @@ class TypeGenerator implements FileGenerator {
 	}
 	
 	private def hasRelations(Table table) {
-		table.attributes.exists[attribute | attribute.type instanceof TableType]
+		table.attributes.exists[it | it.type instanceof TableType]
 	}
 	
 	private def generateTable(Table table) '''
@@ -46,7 +46,7 @@ class TypeGenerator implements FileGenerator {
 		if (!table.hasRelations) return ""
 		'''
 		export type «table.name»Include = {
-			«FOR a: table.attributes.filter[attribute | attribute.type instanceof TableType]»
+			«FOR a: table.attributes.filter[it | it.type instanceof TableType]»
 			«a.name»?: boolean«a.type instanceof TableType ? " | " + Helpers.toPascal(a.name) + "Args" : ""»
 			«ENDFOR»
 		}

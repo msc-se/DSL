@@ -56,7 +56,6 @@ class MigrationGenerator implements FileGenerator {
 			«d.generateCreateAttribute»
 			«ENDFOR»
 		})
-		
 	'''
 	
 	private def generateRelationsAlterTable(Table table) '''
@@ -65,7 +64,6 @@ class MigrationGenerator implements FileGenerator {
 			«d.generateCreateRelationAttribute»
 			«ENDFOR»
 		})
-		
 	'''
 	
 	private def generateCreateAttribute(Attribute attribute) '''
