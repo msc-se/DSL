@@ -1,6 +1,8 @@
 package dk.sdu.mmmi.generator
 
 import org.eclipse.emf.ecore.resource.Resource
+import static extension dk.sdu.mmmi.generator.Helpers.toCamelCase
+import static extension dk.sdu.mmmi.generator.Helpers.toSnakeCase
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import dk.sdu.mmmi.typescriptdsl.Table
 import dk.sdu.mmmi.typescriptdsl.Attribute
@@ -47,6 +49,10 @@ class MigrationGenerator implements FileGenerator {
 			«FOR t: tables.filter[it.attributes.exists[it.type instanceof TableType]] SEPARATOR '\n'»
 			«t.generateRelationsAlterTable»
 			«ENDFOR»
+		
+			«FOR t: tables.filter[it.superType !== null] SEPARATOR '\n'»
+			«t.generateSuperTypeRelation»
+			«ENDFOR»
 			
 			return query
 		}
@@ -57,14 +63,25 @@ class MigrationGenerator implements FileGenerator {
 			«FOR d: table.attributes»
 			«d.generateCreateAttribute»
 			«ENDFOR»
+			«IF table.superType !== null»
+			«val primary = table.superType.primaryColumn»
+			table.«primary.type.generateForeignFunctionCall('''«table.superType.name.toCamelCase»_«primary.name»''')»
+			«ENDIF»
 		})
 	'''
 	
 	private def generateRelationsAlterTable(Table table) '''
-		query = query.alterTable('«table.name.toLowerCase»', function (table) {
+		query = query.alterTable('«table.name.toSnakeCase»', function (table) {
 			«FOR d: table.attributes.filter[it.type instanceof TableType]»
 			«d.generateCreateRelationAttribute»
 			«ENDFOR»
+		})
+	'''
+	
+	private def generateSuperTypeRelation(Table table) '''
+		query = query.alterTable('«table.name.toSnakeCase»', function (table) {
+			«val primary = table.superType.primaryColumn»
+			table.foreign('«table.name.toSnakeCase»_«primary.name»').references('«table.name.toLowerCase».«primary.name»')
 		})
 	'''
 	

@@ -19,7 +19,7 @@ Config returns Config:
 ;
 
 Table:
-	'table' name=ID ':'
+	'table' name=ID ('extends' superType=[Table])? ':'
 		attributes += Attribute+
 ;
 

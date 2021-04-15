@@ -27,7 +27,7 @@ class TypeGenerator implements FileGenerator {
 	}
 	
 	private def generateTable(Table table) '''
-		export type «table.name» = {
+		export type «table.name» = «IF table.superType !== null»«table.superType.name» & «ENDIF»{
 			«FOR a: table.attributes»
 			«a.generateAttribute»
 			«ENDFOR»
