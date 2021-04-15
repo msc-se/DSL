@@ -38,8 +38,7 @@ AndConstraint:
 
 PrimaryConstraint: 		 
  	{RegexConstraint} value=STRING |
- 	{CompareConstraint} operator=Operators value=INT |
- 	{IntervalConstraint} min=INT '-' max=INT
+ 	{CompareConstraint} left=Expression operator=Operators right=Expression
 ;
 
 Operators: 
@@ -49,6 +48,31 @@ Operators:
 	'<=' |
 	'='
 ;
+
+Expression returns Expression:
+	Factor (({Plus.left=current} '+' | {Minus.left=current} '-')  right=Factor)*
+;
+
+Factor returns Expression:
+	Primary (({Mult.left=current} '*' | {Div.left=current} '/')  right=Primary)*
+;
+
+Primary returns Expression:
+	NumberExp | Field | Parenthesis
+;
+
+Parenthesis:
+	'(' exp=Expression ')'
+;
+
+Field:
+	attr=[Attribute]
+;
+
+NumberExp:
+	value=INT
+;
+
 
 AttributeType returns AttributeType:
 	PrimaryType | TableType
