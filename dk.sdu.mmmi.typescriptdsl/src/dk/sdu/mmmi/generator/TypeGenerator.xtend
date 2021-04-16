@@ -6,13 +6,13 @@ import dk.sdu.mmmi.typescriptdsl.IntType
 import dk.sdu.mmmi.typescriptdsl.StringType
 import dk.sdu.mmmi.typescriptdsl.Table
 import dk.sdu.mmmi.typescriptdsl.TableType
-import org.eclipse.emf.ecore.resource.Resource
-import static extension dk.sdu.mmmi.generator.Helpers.toPascalCase
+import java.util.List
 
-class TypeGenerator implements IntermidateGenerator {
-	override generate(Resource resource) {
-		val tables = resource.allContents.filter(Table).toList
+import static extension dk.sdu.mmmi.generator.Helpers.*
+import dk.sdu.mmmi.typescriptdsl.AttributeType
 
+class TypeGenerator implements IntermediateGenerator {
+	override generate(List<Table> tables) {
 		tables.filter(Table).map[generateTypes].join("\n")
 	}
 	
@@ -22,7 +22,8 @@ class TypeGenerator implements IntermidateGenerator {
 			table.generateFindArgs,
 			table.generateSelect,
 			table.generateInclude,
-			table.generateGetPayload
+			table.generateGetPayload,
+			table.generateCreateInputType
 		).join('\n')
 	}
 	
@@ -65,17 +66,20 @@ class TypeGenerator implements IntermidateGenerator {
 		}
 	'''
 	
-
-	
-	private def generateAttribute(Attribute attribute) {
-		if (attribute.type instanceof TableType) return ""
-		
-		val typeName = switch attribute.type {
+	private def getAttributeTypeAsString(AttributeType type) {
+		switch type {
 			IntType: 'number'
 			StringType: 'string'
 			DateType: 'Date'
 			default: 'unknown'
 		}
+	}
+
+	
+	private def generateAttribute(Attribute attribute) {
+		if (attribute.type instanceof TableType) return ""
+		
+		val typeName = attribute.type.attributeTypeAsString
 		
 		'''«attribute.name»: «typeName»«attribute.optional ? ' | null'»'''
 	}
@@ -102,7 +106,7 @@ class TypeGenerator implements IntermidateGenerator {
 			? «table.name» & {
 				[P in TrueKeys<S['include']>] :
 				«FOR a: table.attributes.filter[it.type instanceof TableType]»
-				P extends '«a.name»' ? «Helpers.toPascal(a.name)»GetPayload<S['include'][P]> «a.optional ? '| null'» :
+				P extends '«a.name»' ? «a.name.toPascalCase»GetPayload<S['include'][P]> «a.optional ? '| null'» :
 				«ENDFOR»
 				never
 			}
@@ -114,110 +118,34 @@ class TypeGenerator implements IntermidateGenerator {
 		? {
 			[P in TrueKeys<S['select']>]: P extends keyof «table.name» ? «table.name»[P] :
 			«FOR a: table.attributes.filter[it.type instanceof TableType]»
-				P extends '«a.name»' ? «Helpers.toPascal(a.name)»GetPayload<S['select'][P]> «a.optional ? '| null'» :
+				P extends '«a.name»' ? «a.name.toPascalCase»GetPayload<S['select'][P]> «a.optional ? '| null'» :
 			«ENDFOR»
 			never
 		} : «table.name»
 	'''
 	
-	private def generateUtilityTypes() '''
-		type SelectAndInclude = {
-		  select: any
-		  include: any
+	private def generateCreateInputType(Table table) '''
+		export type «table.name»CreateInput = {
+			«FOR a: table.attributes»
+			«a.generateAttributeInput»
+			«ENDFOR»
 		}
-
-		type HasSelect = {
-			select: any
-		}
-		type HasInclude = {
-			include: any
-		}
-
-		export type CheckSelect<T, S, U> = T extends SelectAndInclude
-			? 'Please either choose `select` or `include`'
-			: T extends HasSelect
-				? U
-				: T extends HasInclude
-					? U
-					: S
-
-		type Enumerable<T> = T | Array<T>
-
-		type StringFilter = {
-		  equals?: string
-		  in?: Enumerable<string>
-		  // notIn?: Enumerable<string>
-		  lt?: string
-		  lte?: string
-		  gt?: string
-		  gte?: string
-		  contains?: string
-		  startsWith?: string
-		  endsWith?: string
-		  // not?: NestedStringFilter | string
-		}
-
-		type IntFilter = {
-		  equals?: number
-		  in?: Enumerable<number>
-		  // notIn?: Enumerable<number>
-		  lt?: number
-		  lte?: number
-		  gt?: number
-		  gte?: number
-		  // not?: NestedIntFilter | number
-		}
-
-		type DateTimeNullableFilter = {
-		  equals?: Date | string | null
-		  in?: Enumerable<Date> | Enumerable<string> | null
-		  // notIn?: Enumerable<Date> | Enumerable<string> | null
-		  lt?: Date | string
-		  lte?: Date | string
-		  gt?: Date | string
-		  gte?: Date | string
-		  // not?: NestedDateTimeNullableFilter | Date | string | null
-		}
-
-		type Select<T extends Record<string, any>> = Partial<Record<keyof T, boolean>>
-		type WhereInput<T extends Record<string, any>> = WhereInputProp<T> & WhereInputConditionals<T>
-		type WhereInputProp<T extends Record<string, any>> = {
-		  [K in keyof T]?: WhereInputFilter<T[K]>
-		}
-
-		type WhereInputConditionals<T> = {
-		  AND?: Enumerable<WhereInputProp<T>>
-		  OR?: Enumerable<WhereInputProp<T>>
-		  NOT?: Enumerable<WhereInputProp<T>>
-		}
-
-		type WhereInputFilter<T extends number | string | Date> =
-		  | (T extends number ? IntFilter | number : never)
-		  | (T extends string ? StringFilter | string : never)
-		  | (T extends Date ? DateTimeNullableFilter : never)
-
-		export type SelectSubset<T, U> = {
-		  [key in keyof T]: key extends keyof U ? T[key] : never
-		} &
-		  (T extends SelectAndInclude
-		    ? 'Please either choose `select` or `include`.'
-		    : {})
-
-		/**
-		 * From T, pick a set of properties whose keys are in the union K
-		 */
-		type PropUnion<T, K extends keyof T> = {
-		  [P in K]: T[P]
-		}
-
-		type RequiredKeys<T> = {
-		  [K in keyof T]-?: {} extends PropUnion<T, K> ? never : K
-		}[keyof T]
-
-		type TruthyKeys<T> = {
-		  [key in keyof T]: T[key] extends false | undefined | null ? never : key
-		}[keyof T]
-
-		type TrueKeys<T> = TruthyKeys<PropUnion<T, RequiredKeys<T>>>
 	'''
+	
+	private def generateAttributeInput(Attribute attr) {
+		var name = attr.name
+		var type = attr.type
+		if (attr.type instanceof TableType) {
+			val table = (attr.type as TableType).table
+			val primary = table.primaryColumn
+			name = '''«table.name.toCamelCase»«primary.name.toPascalCase»'''
+			type = primary.type
+		}
+		
+		val optional = attr.optional || attr.primary && attr.type instanceof IntType
+		
+		'''«name»«IF optional»?«ENDIF»: «type.attributeTypeAsString»«IF attr.optional» | null«ENDIF»'''
+		
+	}
+	
 }

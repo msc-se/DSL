@@ -1,15 +1,12 @@
 package dk.sdu.mmmi.generator
 
-import org.eclipse.emf.ecore.resource.Resource
 import dk.sdu.mmmi.typescriptdsl.Table
 import java.util.List
 import static extension dk.sdu.mmmi.generator.Helpers.*
 
-class TableTypesGenerator implements IntermidateGenerator {
+class TableTypesGenerator implements IntermediateGenerator {
 	
-	override generate(Resource resource) {
-		val tables = resource.allContents.filter(Table).toList
-		
+	override generate(List<Table> tables) {		
 		tables.generateTablesTypes
 	}
 	

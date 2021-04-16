@@ -1,16 +1,16 @@
 package dk.sdu.mmmi.generator
 
-import org.eclipse.emf.ecore.resource.Resource
-import static extension dk.sdu.mmmi.generator.Helpers.toCamelCase
-import static extension dk.sdu.mmmi.generator.Helpers.toSnakeCase
-import org.eclipse.xtext.generator.IFileSystemAccess2
-import dk.sdu.mmmi.typescriptdsl.Table
 import dk.sdu.mmmi.typescriptdsl.Attribute
-import dk.sdu.mmmi.typescriptdsl.TableType
 import dk.sdu.mmmi.typescriptdsl.AttributeType
+import dk.sdu.mmmi.typescriptdsl.DateType
 import dk.sdu.mmmi.typescriptdsl.IntType
 import dk.sdu.mmmi.typescriptdsl.StringType
-import dk.sdu.mmmi.typescriptdsl.DateType
+import dk.sdu.mmmi.typescriptdsl.Table
+import dk.sdu.mmmi.typescriptdsl.TableType
+import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.xtext.generator.IFileSystemAccess2
+
+import static extension dk.sdu.mmmi.generator.Helpers.*
 
 class MigrationGenerator implements FileGenerator {
 	override generate(Resource resource, IFileSystemAccess2 fsa) {
@@ -127,11 +127,4 @@ class MigrationGenerator implements FileGenerator {
 			default: throw new Exception("Unknown type for foreign create!")
 		}
 	}
-	
-	def getPrimaryColumn(Table table) {
-		val primaries = table.attributes.filter[it.primary]
-		if (primaries.size == 0) throw new Exception('''No primary key for table «table.name»''')
-		if (primaries.size > 1) throw new Exception('''Only one primary key can be defined for «table.name»''')
-		primaries.head
-	}	
 }
