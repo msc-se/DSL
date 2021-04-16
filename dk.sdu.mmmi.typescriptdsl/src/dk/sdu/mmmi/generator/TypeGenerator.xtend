@@ -8,15 +8,13 @@ import dk.sdu.mmmi.typescriptdsl.Table
 import dk.sdu.mmmi.typescriptdsl.TableType
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
+import static extension dk.sdu.mmmi.generator.Helpers.toPascalCase
 
 class TypeGenerator implements FileGenerator {
 	override generate(Resource resource, IFileSystemAccess2 fsa) {
 		val tables = resource.allContents.filter(Table).toList
-		val types = newArrayList(generateUtilityTypes)
-		
-		tables.filter(Table).forEach[types.add(generateTypes)]
-		
-		fsa.generateFile('types.ts', types.join('\n'))
+				
+		fsa.generateFile("types.ts", tables.filter(Table).map[generateTypes].join("\n"))
 	}
 	
 	private def CharSequence generateTypes(Table table) {
@@ -34,7 +32,7 @@ class TypeGenerator implements FileGenerator {
 	}
 	
 	private def generateTable(Table table) '''
-		export type «table.name» = {
+		export type «table.name» = «IF table.superType !== null»«table.superType.name» & «ENDIF»{
 			«FOR a: table.attributes»
 			«a.generateAttribute»
 			«ENDFOR»
@@ -54,7 +52,7 @@ class TypeGenerator implements FileGenerator {
 		'''
 		export type «table.name»Include = {
 			«FOR a: table.attributes.filter[it | it.type instanceof TableType]»
-			«a.name»?: boolean«a.type instanceof TableType ? ' | ' + Helpers.toPascal(a.name) + 'Args'»
+			«a.name»?: boolean«a.type instanceof TableType ? " | " + a.name.toPascalCase + "Args" : ""»
 			«ENDFOR»
 		}
 		'''
@@ -63,10 +61,12 @@ class TypeGenerator implements FileGenerator {
 	private def generateSelect(Table table) '''
 		export type «table.name»Select = {
 			«FOR a: table.attributes»
-			«a.name»?: boolean«a.type instanceof TableType ? ' | ' + Helpers.toPascal(a.name) + 'Args'»
+			«a.name»?: boolean«a.type instanceof TableType ? " | " + a.name.toPascalCase + "Args" : ""»
 			«ENDFOR»
 		}
 	'''
+	
+
 	
 	private def generateAttribute(Attribute attribute) {
 		if (attribute.type instanceof TableType) return ""
