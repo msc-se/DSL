@@ -16,8 +16,8 @@ class MigrationGenerator implements FileGenerator {
 	override generate(Resource resource, IFileSystemAccess2 fsa) {
 		val tables = resource.allContents.filter(Table).toList
 		
-		fsa.generateFile("createTables.ts", generateCreateFile(tables))
-		fsa.generateFile("dropTables.ts", generateDropFile(tables)) 
+		fsa.generateFile('createTables.ts', generateCreateFile(tables))
+		fsa.generateFile('dropTables.ts', generateDropFile(tables)) 
 	}
 	
 	private def generateDropFile(Iterable<Table> tables) '''
@@ -93,7 +93,7 @@ class MigrationGenerator implements FileGenerator {
 		val attrType = attr.type
 		switch attrType {
 			IntType: {
-				'''«attr.primary ? "increments" : "integer"»('«attr.name»')'''
+				'''«attr.primary ? 'increments' : 'integer'»('«attr.name»')'''
 			}
 			StringType: {
 				'''string('«attr.name»')«IF attr.primary».primary()«ENDIF»'''
