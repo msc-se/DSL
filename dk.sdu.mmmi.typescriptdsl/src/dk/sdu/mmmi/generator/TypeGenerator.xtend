@@ -8,14 +8,13 @@ import dk.sdu.mmmi.typescriptdsl.StringType
 import dk.sdu.mmmi.typescriptdsl.Table
 import dk.sdu.mmmi.typescriptdsl.TableType
 import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IFileSystemAccess2
 import static extension dk.sdu.mmmi.generator.Helpers.toPascalCase
 
-class TypeGenerator implements FileGenerator {
-	override generate(Resource resource, IFileSystemAccess2 fsa) {
+class TypeGenerator implements IntermidateGenerator {
+	override generate(Resource resource) {
 		val tables = resource.allContents.filter(Table).toList
-				
-		fsa.generateFile("types.ts", tables.filter(Table).map[generateTypes].join("\n"))
+
+		tables.filter(Table).map[generateTypes].join("\n")
 	}
 	
 	private def CharSequence generateTypes(Table table) {
