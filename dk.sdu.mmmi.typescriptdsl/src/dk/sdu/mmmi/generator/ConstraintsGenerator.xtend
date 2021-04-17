@@ -60,7 +60,7 @@ class ConstraintsGenerator implements IntermediateGenerator {
 	
 	def CharSequence constraints(Constraint cons, Attribute current) {
 		switch cons {
-			RegexConstraint: '''new RegExp('«cons.value»').test(value.«current.name»)'''
+			RegexConstraint: '''new RegExp(/«cons.value»/g).test(value.«current.name»)'''
 			CompareConstraint: '''«cons.left.printExp» «cons.operator» «cons.right.printExp»'''
 			Or: '''«cons.left.constraints(current)» || «cons.right.constraints(current)»'''
 			And: '''«cons.left.constraints(current)» && «cons.right.constraints(current)»'''

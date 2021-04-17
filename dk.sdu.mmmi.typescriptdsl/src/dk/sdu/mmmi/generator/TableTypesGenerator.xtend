@@ -14,6 +14,7 @@ class TableTypesGenerator implements IntermediateGenerator {
 		export interface TableType {
 			typeName: string
 			tableName: string
+			primaryColumn: string
 		}
 		
 		export const tableTypes: Record<keyof TypedClient, TableType> = {
@@ -26,7 +27,8 @@ class TableTypesGenerator implements IntermediateGenerator {
 	private def generateTable(Table table) '''
 		«table.name.toCamelCase»: {
 			typeName: '«table.name.toCamelCase»',
-			tableName: '«table.name.toSnakeCase»'
+			tableName: '«table.name.toSnakeCase»',
+			primaryColumn: '«table.primaryColumn.name.toSnakeCase»'
 		}
 	'''
 }
