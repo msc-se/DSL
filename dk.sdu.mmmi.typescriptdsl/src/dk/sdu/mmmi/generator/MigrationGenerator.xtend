@@ -64,8 +64,8 @@ class MigrationGenerator implements FileGenerator {
 			«d.generateCreateAttribute»
 			«ENDFOR»
 			«IF table.superType !== null»
-			«val primary = table.superType.primaryColumn»
-			table.«primary.type.generateForeignFunctionCall('''«table.superType.name.toCamelCase»_«primary.name»''')»
+			«val primary = table.superType.primaryKey»
+			table.«primary.type.generateForeignFunctionCall('''«table.superType.name.toSnakeCase»_«primary.name.toSnakeCase»''')»
 			«ENDIF»
 		})
 	'''
@@ -80,7 +80,7 @@ class MigrationGenerator implements FileGenerator {
 	
 	private def generateSuperTypeRelation(Table table) '''
 		query = query.alterTable('«table.name.toSnakeCase»', function (table) {
-			«val primary = table.superType.primaryColumn»
+			«val primary = table.superType.primaryKey»
 			table.foreign('«table.name.toSnakeCase»_«primary.name»').references('«table.name.toLowerCase».«primary.name»')
 		})
 	'''
@@ -102,7 +102,7 @@ class MigrationGenerator implements FileGenerator {
 				'''timestamp('«attr.name»')'''
 			}
 			TableType: {
-				val primary = attrType.table.primaryColumn
+				val primary = attrType.table.primaryKey
 				'''«primary.type.generateForeignFunctionCall('''«attr.name»_«primary.name»''')»'''
 			}
 			default: throw new Exception("Unknown type for create!")
@@ -116,7 +116,7 @@ class MigrationGenerator implements FileGenerator {
 	def generateRelationsFunctionCalls(Attribute attr) {
 		if (!(attr.type instanceof TableType)) throw new Exception('''Attribute «attr.name» is not a foreign key''')
 		val type = attr.type as TableType
-		val primary = type.table.primaryColumn
+		val primary = type.table.primaryKey
 		'''foreign('«attr.name»_«primary.name»').references('«type.table.name.toLowerCase».«primary.name»')'''
 	}
 	

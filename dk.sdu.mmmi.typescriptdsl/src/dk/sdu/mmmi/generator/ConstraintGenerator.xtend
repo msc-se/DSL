@@ -21,7 +21,7 @@ import java.util.Set
 
 import static extension dk.sdu.mmmi.generator.Helpers.toCamelCase
 
-class ConstraintsGenerator implements IntermediateGenerator {
+class ConstraintGenerator implements IntermediateGenerator {
 	
 	override generate(List<Table> tables) '''
 		type Constraints<T> = { [key in keyof T]?: (value: T) => boolean }
@@ -30,13 +30,12 @@ class ConstraintsGenerator implements IntermediateGenerator {
 			return value === undefined || value === null
 		}
 		
-		export const constraints: { [key in keyof TypedClient]?: Constraints<any> } = {
+		export const constraints: { [key in keyof Client]?: Constraints<any> } = {
 			«FOR t: tables.filter[attributes.exists[constraint !== null]] SEPARATOR ','»
 			«t.generateConstraints»
 			«ENDFOR»
 		}
 	'''
-	
 	
 	def generateConstraints(Table table) '''
 		«table.name.toCamelCase»: {

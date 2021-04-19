@@ -2,6 +2,7 @@ package dk.sdu.mmmi.generator
 
 import dk.sdu.mmmi.typescriptdsl.Table
 import java.util.List
+
 import static extension dk.sdu.mmmi.generator.Helpers.toCamelCase
 
 class DelegateGenerator implements IntermediateGenerator {
@@ -13,7 +14,7 @@ class DelegateGenerator implements IntermediateGenerator {
 		«t.generateDelegate»
 		«ENDFOR»
 		
-		«generateTypedClient(tables)»
+		«generateClient(tables)»
 	'''
 	
 	private def generateDelegate(Table table) '''
@@ -25,12 +26,11 @@ class DelegateGenerator implements IntermediateGenerator {
 		}
 	'''
 	
-	private def generateTypedClient(List<Table> tables) '''
-		export interface TypedClient {
+	private def generateClient(List<Table> tables) '''
+		export interface Client {
 			«FOR t: tables»
 			«t.name.toCamelCase»: «t.name»Delegate
 			«ENDFOR»
 		}	
 	'''
-	
 }
