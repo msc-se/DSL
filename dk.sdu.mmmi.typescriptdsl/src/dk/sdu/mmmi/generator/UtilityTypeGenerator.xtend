@@ -3,7 +3,7 @@ package dk.sdu.mmmi.generator
 import dk.sdu.mmmi.typescriptdsl.Table
 import java.util.List
 
-class UtilityTypesGenerator implements IntermediateGenerator {
+class UtilityTypeGenerator implements IntermediateGenerator {
 	
 	override generate(List<Table> tables) '''
 		type SelectAndInclude = {

@@ -22,7 +22,7 @@ class DelegateGenerator implements IntermediateGenerator {
 			findFirst<T extends «table.name»Args>(args: SelectSubset<T, «table.name»Args>): ClientPromise<«table.name», T, «table.name»GetPayload<T>>
 			delete(where: WhereInput<«table.name»>): Promise<number>
 			create(data: «table.name»CreateInput): Promise<«table.name»>
-			update(args: Partial<«table.name»CreateInput>): Promise<«table.name»>
+			update(args: { where: WhereInput<«table.name»>, data: Partial<«table.name»CreateInput> }): Promise<«table.name»>
 		}
 	'''
 	
