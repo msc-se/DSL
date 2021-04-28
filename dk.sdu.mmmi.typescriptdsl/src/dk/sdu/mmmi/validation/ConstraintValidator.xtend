@@ -16,6 +16,7 @@ import java.util.List
 import org.eclipse.xtext.validation.Check
 import dk.sdu.mmmi.typescriptdsl.TypescriptdslPackage
 import dk.sdu.mmmi.typescriptdsl.IntType
+import dk.sdu.mmmi.typescriptdsl.Table
 
 class ConstraintValidator extends AbstractTypescriptdslValidator {
 	
@@ -38,6 +39,13 @@ class ConstraintValidator extends AbstractTypescriptdslValidator {
 				error('Attribute name is the same as on the left side', it, TypescriptdslPackage.Literals.COMPARE_CONSTRAINT__RIGHT)
 			}
 		]
+	}
+	
+	@Check
+	def ValidatePrimary(Table table) {
+		if (!table.attributes.exists[it.primary]) {
+			error('''Table «table.name» does not contain a primary key.''', TypescriptdslPackage.Literals.TABLE__NAME)
+		}
 	}
 	
 	
