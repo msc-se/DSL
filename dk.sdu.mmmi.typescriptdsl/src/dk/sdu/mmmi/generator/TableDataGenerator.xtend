@@ -2,22 +2,23 @@ package dk.sdu.mmmi.generator
 
 import dk.sdu.mmmi.typescriptdsl.Table
 import java.util.List
+
 import static extension dk.sdu.mmmi.generator.Helpers.*
 
-class TableTypesGenerator implements IntermediateGenerator {
+class TableDataGenerator implements IntermediateGenerator {
 	
 	override generate(List<Table> tables) {		
 		tables.generateTablesTypes
 	}
 	
 	private def generateTablesTypes(List<Table> tables) '''
-		export interface TableType {
+		export interface TableData {
 			typeName: string
 			tableName: string
-			primaryColumn: string
+			primaryKey: string
 		}
 		
-		export const tableTypes: Record<keyof TypedClient, TableType> = {
+		export const tableData: Record<keyof Client, TableData> = {
 			«FOR t: tables SEPARATOR ','»
 			«t.generateTable»
 			«ENDFOR»
@@ -28,7 +29,7 @@ class TableTypesGenerator implements IntermediateGenerator {
 		«table.name.toCamelCase»: {
 			typeName: '«table.name.toCamelCase»',
 			tableName: '«table.name.toSnakeCase»',
-			primaryColumn: '«table.primaryColumn.name.toSnakeCase»'
+			primaryKey: '«table.primaryKey.name.toSnakeCase»'
 		}
 	'''
 }

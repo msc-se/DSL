@@ -1,7 +1,7 @@
 package dk.sdu.mmmi.generator
 
-import java.util.ArrayList
 import dk.sdu.mmmi.typescriptdsl.Table
+import java.util.ArrayList
 
 class Helpers {
 	
@@ -51,7 +51,7 @@ class Helpers {
 		return words.join('_')
 	}
 	
-	static def getPrimaryColumn(Table table) {
+	static def getPrimaryKey(Table table) {
 		val primaries = table.attributes.filter[it.primary]
 		if (primaries.size == 0) throw new Exception('''No primary key for table «table.name»''')
 		if (primaries.size > 1) throw new Exception('''Only one primary key can be defined for «table.name»''')

@@ -3,7 +3,7 @@ package dk.sdu.mmmi.generator
 import dk.sdu.mmmi.typescriptdsl.Table
 import java.util.List
 
-class UtilityTypesGenerator implements IntermediateGenerator {
+class UtilityTypeGenerator implements IntermediateGenerator {
 	
 	override generate(List<Table> tables) '''
 		type SelectAndInclude = {
@@ -31,7 +31,6 @@ class UtilityTypesGenerator implements IntermediateGenerator {
 		type StringFilter = {
 		  equals?: string
 		  in?: Enumerable<string>
-		  // notIn?: Enumerable<string>
 		  lt?: string
 		  lte?: string
 		  gt?: string
@@ -39,29 +38,24 @@ class UtilityTypesGenerator implements IntermediateGenerator {
 		  contains?: string
 		  startsWith?: string
 		  endsWith?: string
-		  // not?: NestedStringFilter | string
 		}
 
 		type IntFilter = {
 		  equals?: number
 		  in?: Enumerable<number>
-		  // notIn?: Enumerable<number>
 		  lt?: number
 		  lte?: number
 		  gt?: number
 		  gte?: number
-		  // not?: NestedIntFilter | number
 		}
 
 		type DateTimeNullableFilter = {
 		  equals?: Date | string | null
 		  in?: Enumerable<Date> | Enumerable<string> | null
-		  // notIn?: Enumerable<Date> | Enumerable<string> | null
 		  lt?: Date | string
 		  lte?: Date | string
 		  gt?: Date | string
 		  gte?: Date | string
-		  // not?: NestedDateTimeNullableFilter | Date | string | null
 		}
 
 		type Select<T extends Record<string, any>> = Partial<Record<keyof T, boolean>>
@@ -105,5 +99,4 @@ class UtilityTypesGenerator implements IntermediateGenerator {
 
 		type TrueKeys<T> = TruthyKeys<PropUnion<T, RequiredKeys<T>>>
 	'''
-	
 }

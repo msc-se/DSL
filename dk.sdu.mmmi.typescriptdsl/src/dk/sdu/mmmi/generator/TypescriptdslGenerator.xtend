@@ -14,7 +14,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#code-generation
  */
 class TypescriptdslGenerator extends AbstractGenerator {
-	val generators = newArrayList(new MigrationGenerator, new EnvironmentGenerator, new IndexGenerator)
+	val generators = newArrayList(new MigrationGenerator, new EnvironmentGenerator, new TypeGenerator)
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		this.generators.forEach[generate(resource, fsa)]
