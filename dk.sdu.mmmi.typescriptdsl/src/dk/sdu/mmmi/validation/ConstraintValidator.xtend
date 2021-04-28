@@ -43,9 +43,15 @@ class ConstraintValidator extends AbstractTypescriptdslValidator {
 	
 	@Check
 	def ValidatePrimary(Table table) {
-		if (!table.attributes.exists[it.primary]) {
+		val primaries = table.attributes.filter[it.primary]
+		if (primaries.empty) {
 			error('''Table «table.name» does not contain a primary key.''', TypescriptdslPackage.Literals.TABLE__NAME)
 		}
+		
+		if (primaries.length > 1) {
+			error('''Table «table.name» contains more than one primary key.''', TypescriptdslPackage.Literals.TABLE__NAME)
+		}
+		
 	}
 	
 	
