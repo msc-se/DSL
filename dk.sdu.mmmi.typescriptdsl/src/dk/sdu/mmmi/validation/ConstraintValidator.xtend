@@ -21,13 +21,13 @@ import dk.sdu.mmmi.typescriptdsl.Table
 class ConstraintValidator extends AbstractTypescriptdslValidator {
 	
 	@Check
-	def ValidateField(Field field) {
+	def validateField(Field field) {
 		if (!(field.attr.type instanceof IntType)) 
 			error('''Attribute «field.attr.name» is not of type int''', TypescriptdslPackage.Literals.FIELD__ATTR)		
 	}
 	
 	@Check
-	def ValidateConstraint(Attribute attr) {
+	def validateConstraint(Attribute attr) {
 		val List<CompareConstraint> compares = newArrayList()
 		attr.constraint.extractListOfCompareConstraints(compares)
 		compares.forEach[
@@ -42,7 +42,7 @@ class ConstraintValidator extends AbstractTypescriptdslValidator {
 	}
 	
 	@Check
-	def ValidatePrimary(Table table) {
+	def validatePrimary(Table table) {
 		val primaries = table.attributes.filter[it.primary]
 		if (primaries.empty) {
 			error('''Table «table.name» does not contain a primary key.''', TypescriptdslPackage.Literals.TABLE__NAME)
@@ -51,7 +51,6 @@ class ConstraintValidator extends AbstractTypescriptdslValidator {
 		if (primaries.length > 1) {
 			error('''Table «table.name» contains more than one primary key.''', TypescriptdslPackage.Literals.TABLE__NAME)
 		}
-		
 	}
 	
 	
