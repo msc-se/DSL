@@ -60,7 +60,7 @@ class TableTypeGenerator implements IntermediateGenerator {
 	
 	private def generateSelect(Table table) '''
 		export type «table.name»Select = {
-			«FOR a: table.attributes»
+			«FOR a: table.attributes.filter[!(type instanceof TableType)]»
 			«a.name»?: boolean«a.type instanceof TableType ? " | " + a.name.toPascalCase + "Args" : ""»
 			«ENDFOR»
 		}

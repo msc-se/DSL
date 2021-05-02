@@ -28,7 +28,7 @@ class UtilityTypeGenerator implements IntermediateGenerator {
 
 		type Enumerable<T> = T | Array<T>
 
-		type StringFilter = {
+		export type StringFilter = {
 		  equals?: string
 		  in?: Enumerable<string>
 		  lt?: string
@@ -40,7 +40,7 @@ class UtilityTypeGenerator implements IntermediateGenerator {
 		  endsWith?: string
 		}
 
-		type IntFilter = {
+		export type IntFilter = {
 		  equals?: number
 		  in?: Enumerable<number>
 		  lt?: number
@@ -49,7 +49,7 @@ class UtilityTypeGenerator implements IntermediateGenerator {
 		  gte?: number
 		}
 
-		type DateTimeNullableFilter = {
+		export type DateTimeNullableFilter = {
 		  equals?: Date | string | null
 		  in?: Enumerable<Date> | Enumerable<string> | null
 		  lt?: Date | string
@@ -58,9 +58,9 @@ class UtilityTypeGenerator implements IntermediateGenerator {
 		  gte?: Date | string
 		}
 
-		type Select<T extends Record<string, any>> = Partial<Record<keyof T, boolean>>
-		type WhereInput<T extends Record<string, any>> = WhereInputProp<T> & WhereInputConditionals<T>
-		type WhereInputProp<T extends Record<string, any>> = {
+		export type Select<T extends Record<string, any>> = Partial<Record<keyof T, boolean>>
+		export type WhereInput<T extends Record<string, any>> = WhereInputProp<T> & WhereInputConditionals<T>
+		export type WhereInputProp<T extends Record<string, any>> = {
 		  [K in keyof T]?: WhereInputFilter<T[K]>
 		}
 
@@ -76,7 +76,7 @@ class UtilityTypeGenerator implements IntermediateGenerator {
 		  | (T extends Date ? DateTimeNullableFilter : never)
 
 		export type SelectSubset<T, U> = {
-		  [key in keyof T]: key extends keyof U ? T[key] : never
+		  [K in keyof T]: K extends keyof U ? T[K] : never
 		} &
 		  (T extends SelectAndInclude
 		    ? 'Please either choose `select` or `include`.'
@@ -94,7 +94,7 @@ class UtilityTypeGenerator implements IntermediateGenerator {
 		}[keyof T]
 
 		type TruthyKeys<T> = {
-		  [key in keyof T]: T[key] extends false | undefined | null ? never : key
+		  [K in keyof T]: T[K] extends false | undefined | null ? never : K
 		}[keyof T]
 
 		type TrueKeys<T> = TruthyKeys<PropUnion<T, RequiredKeys<T>>>
